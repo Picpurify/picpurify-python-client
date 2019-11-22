@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-Copyright (c) 2019 Picpurify
+Copyright (c) 2019 PicPurify
 https://www.picpurify.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,60 +25,130 @@ SOFTWARE.
 '''
 
 import os, json, requests
-#import picpurify
+import picpurify
 
-class PicpurifyClient(object):
-    available_tasks = ['porn_detection', 'suggestive_nudity_detection', 'gore_detection', 'writing_detection', 'qr_code_detection', 'money_detection',
-                        'weapon_detection', 'drug_detection', 'nazis_swastika_detection', 'obscene_gesture_detection', 'face_gender_detection', 'face_detection']
 
-    def __init__(self, api_key, tasks = None):
+class PicPurify(object):
+    '''
+    
+    '''
+
+    AVAILABLE_TASKS = ['porn_moderation', 'suggestive_nudity_moderation', 'gore_moderation', 'qr_code_moderation', 'money_moderation',
+                        'weapon_moderation', 'drug_moderation', 'hate_sign_moderation', 'obscene_gesture_moderation',
+                         'face_detection', 'face_gender_detection', 'face_age_detection', 'face_gender_age_detection']
+    
+
+    def __init__(self, api_key):
+        if type(self) is PicPurify:
+            raise TypeError("PicPurify is an abstract class and should not be instanciated directly. Please use PicPurifyVideo or PicPurifyImage.")
         self.API_KEY = api_key
-        self.tasks = tasks
-        self.endpoint = 'https://www.picpurify.com/analyse.php'
-        #self.headers = {'User-Agent': 'Picpurify-Client-Python-' + picpurify.__version__ }
-        self.headers = {'User-Agent': 'Picpurify-Client-Python-' + '1.0' }
+        self.session = requests.Session()
+        self.session.headers = requests.utils.default_headers()
+        self.session.headers.update({'User-Agent': 'PicPurify-Client-Python-' + picpurify.__version__ })
+        
+    def updateTasks(self, tasks):
+        try:
+            if type(tasks) is not list:
+                raise ValueError('the task parameter must be a list of available task '+ str(tasks) +'\nAvailable tasks :\n' + '\n'.join(self.AVAILABLE_TASKS))
+            for task in tasks:
+                if task not in self.AVAILABLE_TASKS:
+                    raise ValueError('this task is not available '+ str(task))            
+            self.tasks = tasks
+        except Exception as e: 
+            print(e)
         
     
-    def analyse_file(self, image_path, tasks, origin_id = None, reference_id = None):
-        img_data = {'file_image': open(image_path, 'rb')}
-        post_data =  { "API_KEY":self.API_KEY, "task": tasks}
-        if origin_id is not None:
-            post_data['origin_id'] = origin_id
-        if reference_id is not None:
-            post_data['reference_id'] = reference_id
-        result_data = requests.post(self.endpoint,files = img_data, data = post_data)
-        return json.loads(result_data.content)
-    
-    
-    def analyse_url(self, url_image, tasks, origin_id = None, reference_id = None):
-        post_data =  { "url_image" : url_image, "API_KEY":self.API_KEY, "task": tasks}
-        if origin_id is not None:
-            post_data['origin_id'] = origin_id
-        if reference_id is not None:
-            post_data['reference_id'] = reference_id
-        result_data = requests.post(self.endpoint, data = post_data)
-        return json.loads(result_data.content)
-    
-    
-    def analyse(self, image, origin_id = None, reference_id = None):
-        if image.lower().startswith(('http://', 'https://')):
-            return self.analyse_url(image, self.tasks, origin_id, reference_id)
+    def isSafe(self, data_path, **optional_parameters):
+        response = self.analyse(data_path, **optional_parameters)
+        if "final_decision" in response:
+            return response["final_decision"] == "OK"
         else:
-            return self.analyse_file(image, self.tasks, origin_id, reference_id)
+            return response
+       
+    def analyseFile(self, file_path, **optional_parameters):
+        file_data = {self.file_field: open(file_path, 'rb')}
+        post_data =  {"API_KEY": self.API_KEY, "task": ','.join(self.tasks)}
+        post_data.update(optional_parameters)
+        result_data = requests.post(self.endpoint, files = file_data, data = post_data, headers = self.session.headers)
+        return json.loads(result_data.content)
+    
+    
+    def analyseUrl(self, url_data, **optional_parameters):
+        post_data =  { self.url_field : url_data, "API_KEY":self.API_KEY, "task": ','.join(self.tasks)}
+        post_data.update(optional_parameters)
+        result_data = requests.post(self.endpoint, data = post_data, headers = self.session.headers)
+        return json.loads(result_data.content)
+    
+    
+    def analyse(self, data_path, **optional_parameters):
+        if data_path.lower().startswith(("http://", "https://")):
+            return self.analyseUrl(data_path, **optional_parameters)
+        else:
+            return self.analyseFile(data_path, **optional_parameters)
+
         
+class PicPurifyImage(PicPurify):
+    '''
+    IMAGE API DOC : https://www.picpurify.com/api-services.html#single_image_api_doc
+    
+    Optional_parameters: 
+    reference_id     String    A unique reference associated to the image in your information system
+    origin_id        String    A reference to retrieve the origin of the image, profile id, account id ...
+    '''
+       
+    def __init__(self, api_key, tasks):
+        '''
+        api_key: your personnal API key (can be found in the "API keys" section in your dashboard
+        tasks: an array of tasks pickup in the AVAILABLE_TASKS
+        '''
+        super(PicPurifyImage, self).__init__(api_key)
+        self.updateTasks(tasks)
+        self.endpoint = 'https://www.picpurify.com/analyse/1.1'
         
+    @property
+    def file_field(self):
+        return 'file_image'
+    
+    @property
+    def url_field(self):
+        return 'url_image'
+                 
+    
+
+class PicPurifyVideo(PicPurify):
+    '''
+    VIDEO API DOC : https://www.picpurify.com/api-services.html#video_api_doc
+    
+    Optional_parameters: 
+    frame_interval   Decimal   Interval in seconds between the analyzed images. The default value is 1, which means that one frame every second will be analyzed. Values less than 1 can be used. For example 0.1 means an image every 100 ms.
+    reference_id     String    A unique reference associated to the video in your information system
+    origin_id        String    A reference to retrieve the origin of the video, profile id, account id ...
+    '''
+    
+    
+    def __init__(self, api_key, tasks):
+        '''
+        api_key: your personnal API key (can be found in the "API keys" section in your dashboard
+        tasks: an array of tasks pickup in the AVAILABLE_TASKS
+        '''
+        super(PicPurifyVideo, self).__init__(api_key)
+        self.updateTasks(tasks)
+        self.endpoint = 'https://www.picpurify.com/analyse_video/1.1'
+         
+    @property
+    def file_field(self):
+        return 'file_video'
+    
+    @property
+    def url_field(self):
+        return 'url_video'
         
-#     def feedback(self, predict, real, image):
+            
+def getNbFace(self, api_key, image_path):
+    client = PicPurifyImage(api_key, 'face_detection')
+    response = client.analyse(image_path)
+    if response["status"] == "success" and "face_detection" in response:
+        return response["face_detection"]["nb_face"]
+    else:
+        return response
 
-
-# 
-#         output = json.loads(r.text)
-#         return output
-
-
-test = PicpurifyClient('44ec0a838ffd7aa90955ba50a9b4e502','porn_detection')
-print(test.analyse('https://s-media-cache-ak0.pinimg.com/736x/80/21/ec/8021ec8484c7849130cccdb026c372ce.jpg'))
-print('')
-origin_id = 'toto'
-reference_id = 'tata'
-print(test.analyse('https://s-media-cache-ak0.pinimg.com/736x/80/21/ec/8021ec8484c7849130cccdb026c372ce.jpg',origin_id,reference_id))
