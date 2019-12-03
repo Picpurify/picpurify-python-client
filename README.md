@@ -6,7 +6,7 @@ Python client library for accessing PicPurify moderation API.
 
 Please make sure you have created an account on https://www.picpurify.com/signup.html to collect your personal API key.
 
-Your personnal api key can be found in your sashbors in the "API keys" section : https://www.picpurify.com/apikey.html
+Your personnal API key can be found in your dashboard in the "API keys" tab: https://www.picpurify.com/apikey.html
 
 ## Installation 
 ```

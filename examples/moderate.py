@@ -26,12 +26,11 @@ SOFTWARE.
 
 from picpurify.api import PicPurifyImage, PicPurifyVideo
 
-#picpurify_api_key = 'YOUR_PERSONAL_API_KEY'
-picpurify_api_key = '44ec0a838ffd7aa90955ba50a9b4e502'
+my_api_key = 'YOUR_PERSONAL_API_KEY'
 
 
 #Image moderation
-client_image = PicPurifyImage(picpurify_api_key,['porn_moderation'])
+client_image = PicPurifyImage(my_api_key,['porn_moderation'])
 print(client_image.analyse('https://s-media-cache-ak0.pinimg.com/736x/80/21/ec/8021ec8484c7849130cccdb026c372ce.jpg'))
 print('')
 
@@ -48,7 +47,7 @@ else:
 print('')
 
 #Video moderation
-client_video = PicPurifyVideo(picpurify_api_key,['face_detection','porn_moderation'])
+client_video = PicPurifyVideo(my_api_key,['face_detection','porn_moderation'])
 print(client_video.analyse('https://file-examples.com/wp-content/uploads/2017/04/file_example_MP4_480_1_5MG.mp4', frame_interval=2))
 
 
