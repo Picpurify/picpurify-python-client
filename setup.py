@@ -10,16 +10,21 @@ requirements = [
 about = {}
 with open(os.path.join(here, 'picpurify', 'version.py'), 'r') as f:
     exec(f.read(), about)
-    
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()   
 
 setup(
-    name='picpurify',
+    name="picpurify",
     version=about['__version__'],
     description=about['__description__'],
-    url='https://www.picpurify.com',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://www.picpurify.com",
     license="MIT license",
     python_requires='>=2.7',
     packages=find_packages(),
-    install_requires=requirements
-      
+    install_requires=requirements,
+    author="Romain Cousseau",
+    author_email="romain.cousseau@picpurify.com"      
 )

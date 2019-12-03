@@ -34,8 +34,8 @@ class PicPurify(object):
     '''
 
     AVAILABLE_TASKS = ['porn_moderation', 'suggestive_nudity_moderation', 'gore_moderation', 'qr_code_moderation', 'money_moderation',
-                        'weapon_moderation', 'drug_moderation', 'hate_sign_moderation', 'obscene_gesture_moderation',
-                         'face_detection', 'face_gender_detection', 'face_age_detection', 'face_gender_age_detection']
+                        'weapon_moderation', 'drug_moderation', 'hate_sign_moderation', 'obscene_gesture_moderation','qr_code_moderation',
+                         'face_detection', 'face_gender_detection', 'face_age_detection', 'face_gender_age_detection','content_moderation_profile']
     
 
     def __init__(self, api_key):
@@ -49,10 +49,10 @@ class PicPurify(object):
     def updateTasks(self, tasks):
         try:
             if type(tasks) is not list:
-                raise ValueError('the task parameter must be a list of available task '+ str(tasks) +'\nAvailable tasks :\n' + '\n'.join(self.AVAILABLE_TASKS))
+                raise ValueError('The task parameter must be a list of available task '+ str(tasks) +'\nAvailable tasks :\n' + '\n'.join(self.AVAILABLE_TASKS))
             for task in tasks:
                 if task not in self.AVAILABLE_TASKS:
-                    raise ValueError('this task is not available '+ str(task))            
+                    raise ValueError('This task is not available '+ str(task)+ '\nPlease check the task name or upgrade your package if this task is not available in this package version.')            
             self.tasks = tasks
         except Exception as e: 
             print(e)
