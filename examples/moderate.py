@@ -24,7 +24,7 @@ SOFTWARE.
 
 '''
 
-from picpurify.api import PicPurifyImage, PicPurifyVideo
+from picpurify.api import *
 
 my_api_key = 'YOUR_PERSONAL_API_KEY'
 
@@ -33,17 +33,30 @@ my_api_key = 'YOUR_PERSONAL_API_KEY'
 client_image = PicPurifyImage(my_api_key,['porn_moderation'])
 print(client_image.analyse('https://s-media-cache-ak0.pinimg.com/736x/80/21/ec/8021ec8484c7849130cccdb026c372ce.jpg'))
 print('')
-
+ 
 client_image.updateTasks(['gore_moderation','obscene_gesture_moderation'])
 print(client_image.analyse('https://s-media-cache-ak0.pinimg.com/736x/80/21/ec/8021ec8484c7849130cccdb026c372ce.jpg', origin_id = 'MY_ORIGIN_ID', reference_id = 'MY_REFERENCE_ID'))
 print('') 
 
 client_image.updateTasks(['weapon_moderation'])
-is_safe_image = client_image.isSafe('https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fo.aolcdn.com%2Fhss%2Fstorage%2Fmidas%2F6e8cbf95e5bb14c88d3ec6e0027f0ef7%2F204187597%2FScreen%2BShot%2B2016-08-10%2Bat%2B12.10.41%2BPM.png&f=1&nofb=1')
+is_safe_image = client_image.isSafe('https://www.everydaynodaysoff.com/wp-content/uploads/2016/03/revolver-gun-extendo-clip.jpg')
 if is_safe_image:
     print('Image Accepted')
 else:
-    print('Image Rejected') 
+    print('Image Rejected')
+print('')
+
+client_image.updateTasks(['porn_moderation','face_age_detection'])
+is_safe_image = client_image.isSafe('https://www.everydaynodaysoff.com/wp-content/uploads/2016/03/revolver-gun-extendo-clip.jpg')
+if is_safe_image:
+    print('Image Accepted')
+else:
+    print('Image Rejected')
+print('')
+
+
+nb_faces = getNbFace(my_api_key,'https://cdn.pixabay.com/photo/2018/01/24/19/49/people-3104635_960_720.jpg')
+print('Faces detected in image : %s' % (nb_faces))
 print('')
 
 #Video moderation

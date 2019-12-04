@@ -32,10 +32,10 @@ class PicPurify(object):
     '''
     
     '''
-
-    AVAILABLE_TASKS = ['porn_moderation', 'suggestive_nudity_moderation', 'gore_moderation', 'qr_code_moderation', 'money_moderation',
-                        'weapon_moderation', 'drug_moderation', 'hate_sign_moderation', 'obscene_gesture_moderation','qr_code_moderation',
-                         'face_detection', 'face_gender_detection', 'face_age_detection', 'face_gender_age_detection','content_moderation_profile']
+    MODERATION_TASKS = ['porn_moderation', 'suggestive_nudity_moderation', 'gore_moderation', 'qr_code_moderation', 'money_moderation',
+                        'weapon_moderation', 'drug_moderation', 'hate_sign_moderation', 'obscene_gesture_moderation','qr_code_moderation']
+    DETECTION_TASKS = ['face_detection', 'face_gender_detection', 'face_age_detection', 'face_gender_age_detection']
+    AVAILABLE_TASKS = MODERATION_TASKS + DETECTION_TASKS + ['content_moderation_profile']
     
 
     def __init__(self, api_key):
@@ -47,23 +47,23 @@ class PicPurify(object):
         self.session.headers.update({'User-Agent': 'PicPurify-Client-Python-' + picpurify.__version__ })
         
     def updateTasks(self, tasks):
-        try:
-            if type(tasks) is not list:
-                raise ValueError('The task parameter must be a list of available task '+ str(tasks) +'\nAvailable tasks :\n' + '\n'.join(self.AVAILABLE_TASKS))
-            for task in tasks:
-                if task not in self.AVAILABLE_TASKS:
-                    raise ValueError('This task is not available '+ str(task)+ '\nPlease check the task name or upgrade your package if this task is not available in this package version.')            
-            self.tasks = tasks
-        except Exception as e: 
-            print(e)
+        if type(tasks) is not list:
+            raise ValueError('The task parameter must be a list of available task '+ str(tasks) +'\nAvailable tasks :\n' + '\n'.join(self.AVAILABLE_TASKS))
+        for task in tasks:
+            if task not in self.AVAILABLE_TASKS:
+                raise ValueError('This task is not available '+ str(task)+ '\nPlease check the task name or upgrade your package if this task is not available in this package version.')            
+        self.tasks = tasks
+
         
     
     def isSafe(self, data_path, **optional_parameters):
+        #check if tasks is only focusing on detection 
+        if len(self.tasks) == len(set(self.tasks) & set(self.DETECTION_TASKS)):
+            raise ValueError('isSafe method is meant to be used with moderation tasks')
         response = self.analyse(data_path, **optional_parameters)
         if "final_decision" in response:
             return response["final_decision"] == "OK"
-        else:
-            return response
+
        
     def analyseFile(self, file_path, **optional_parameters):
         file_data = {self.file_field: open(file_path, 'rb')}
@@ -82,9 +82,19 @@ class PicPurify(object):
     
     def analyse(self, data_path, **optional_parameters):
         if data_path.lower().startswith(("http://", "https://")):
-            return self.analyseUrl(data_path, **optional_parameters)
+            response = self.analyseUrl(data_path, **optional_parameters)
         else:
-            return self.analyseFile(data_path, **optional_parameters)
+            response = self.analyseFile(data_path, **optional_parameters)
+        
+        if "status" not in response:
+            raise  PicpurifyException(50,"Cannot get valid answer from Picpurify endpoint")          
+        if response["status"] == "success":
+            return response
+        elif response["status"] == "failure":
+            raise PicpurifyException(response["error"]["errorCode"],response["error"]["errorMsg"])
+
+
+
 
         
 class PicPurifyImage(PicPurify):
@@ -143,12 +153,18 @@ class PicPurifyVideo(PicPurify):
     def url_field(self):
         return 'url_video'
         
+
+class PicpurifyException(Exception):
+    def __init__(self, errorCode, errorMsg):
+        self.errorCode = errorCode
+        self.errorMsg = errorMsg
+        
+    def __str__(self):
+        return 'Error code ' + str(self.errorCode) + ' : ' + self.errorMsg
             
-def getNbFace(self, api_key, image_path):
-    client = PicPurifyImage(api_key, 'face_detection')
+def getNbFace(api_key, image_path):
+    client = PicPurifyImage(api_key, ['face_detection'])
     response = client.analyse(image_path)
-    if response["status"] == "success" and "face_detection" in response:
-        return response["face_detection"]["nb_face"]
-    else:
-        return response
+    return response["face_detection"]["nb_face"]
+
 

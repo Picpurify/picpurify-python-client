@@ -20,7 +20,7 @@ pip install picpurify
 from picpurify.api import PicPurifyImage
 
 client_image = PicPurifyImage('YOUR_PERSONAL_API_KEY',['porn_moderation','gore_moderation','obscene_gesture_moderation'])
-response = client_image.analyse(https://s3-eu-west-1.amazonaws.com/site-picpurify/images/porn-accepted-example.jpg)
+response = client_image.analyse('https://s3-eu-west-1.amazonaws.com/site-picpurify/images/porn-accepted-example.jpg')
 if response["final_decision"] == "OK":
     print('Image Accepted')
 else:
