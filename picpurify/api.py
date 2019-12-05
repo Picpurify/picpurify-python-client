@@ -81,7 +81,7 @@ class PicPurify(object):
     
     
     def analyse(self, data_path, **optional_parameters):
-        if data_path.lower().startswith(("http://", "https://")):
+        if data_path.lower().startswith(("http://", "https://","data:image/")):
             response = self.analyseUrl(data_path, **optional_parameters)
         else:
             response = self.analyseFile(data_path, **optional_parameters)
