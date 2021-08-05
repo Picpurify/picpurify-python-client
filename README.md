@@ -8,14 +8,15 @@ Please make sure you have created an account on https://www.picpurify.com/signup
 
 Your personnal API key can be found in your dashboard in the "API keys" tab: https://www.picpurify.com/apikey.html
 
-## Installation 
-```
-pip install picpurify
+## Installation
 
+```bash
+pip install picpurify
 ```
 
 ## Usage
-```
+
+```python
 #### Check image safety
 from picpurify.api import PicPurifyImage
 
@@ -28,6 +29,7 @@ else:
     print('Reject criteria: %s' % (','.join(response["reject_criteria"])))
 
 ```
+
 ## Documentation
 
 API documentation can be found at <https://www.picpurify.com/api-services.html>.
