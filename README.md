@@ -17,17 +17,19 @@ pip install picpurify
 ## Usage
 
 ```python
-#### Check image safety
-from picpurify.api import PicPurifyImage
+from picpurify.api import PicPurifyImage, PicPurifyException
 
-client_image = PicPurifyImage('YOUR_PERSONAL_API_KEY',['porn_moderation','gore_moderation','obscene_gesture_moderation'])
-response = client_image.analyse('https://s3-eu-west-1.amazonaws.com/site-picpurify/images/porn-accepted-example.jpg')
-if response["final_decision"] == "OK":
-    print('Image Accepted')
-else:
-    print('Image Rejected')
-    print('Reject criteria: %s' % (','.join(response["reject_criteria"])))
+image_client = PicPurifyImage('YOUR_PERSONAL_API_KEY', ['porn_moderation', 'gore_moderation', 'obscene_gesture_moderation'])
 
+try:
+    response = image_client.analyse('https://s3-eu-west-1.amazonaws.com/site-picpurify/images/porn-accepted-example.jpg')
+    if response['final_decision'] == 'OK':
+        print('Image Accepted')
+    else:
+        print('Image Rejected')
+        print('Reject criteria: %s' % (','.join(response['reject_criteria'])))
+except PicPurifyException as e:
+    print(e)
 ```
 
 ## Documentation
