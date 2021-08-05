@@ -23,7 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
-import os, json, requests
+import os, io, json, requests
+from PIL import Image
 import picpurify
 
 #########
@@ -45,6 +46,25 @@ def getNbFace(api_key, image_path):
     response = client.analyse(image_path)
     return response["face_detection"]["nb_face"]
 
+def resize_image(img):
+    """Resizes an image to prevent it from being rejected by PicPurify servers.
+    """
+    width, height = img.size
+    if width > 1280 or height > 1280:
+        img.thumbnail((1280,1280), Image.ANTIALIAS)
+    return width, height
+
+def load_image(path):
+    """Load an image and set it to the correct size for PicPurify servers.
+    Can raise an IOError if file loading fails.
+    """
+    img = Image.open(path)
+    img.load()
+    initial_width, initial_height = resize_image(img)
+    image_buffer = io.BytesIO()
+    img.save(image_buffer, format='JPEG')
+    image_buffer.seek(0)
+    return image_buffer, initial_width, initial_height
 
 ##########################
 # Actual PicPurify logic #
@@ -91,9 +111,10 @@ class PicPurify(object):
             return response["final_decision"] == "OK"
 
     def analyseFile(self, file_path, **optional_parameters):
-        file_data = {self.file_field: open(file_path, 'rb')}
-        post_data =  {"API_KEY": self.API_KEY, "task": ','.join(self.tasks)}
+        post_data = {"API_KEY": self.API_KEY, "task": ','.join(self.tasks)}
         post_data.update(optional_parameters)
+        image_buffer, post_data['original_img_width'], post_data['original_img_height'] = load_image(file_path)
+        file_data = {self.file_field: image_buffer}
         result_data = requests.post(self.endpoint, files = file_data, data = post_data, headers = self.session.headers)
         return json.loads(result_data.content)
 

@@ -4,8 +4,8 @@ import os
 here = os.path.abspath(os.path.dirname(__file__))
 
 requirements = [
-    'requests>=2.13.0',
-    ]
+    'requests>=2.13.0', 'Pillow>=7.0.0'
+]
 
 about = {}
 with open(os.path.join(here, 'picpurify', 'version.py'), 'r') as f:
