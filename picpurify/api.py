@@ -37,6 +37,9 @@ class PicpurifyException(Exception):
     def __str__(self):
         return 'Error code ' + str(self.errorCode) + ': ' + self.errorMsg
 
+# This alias fixes the typo while preserving backwards-compatibility.
+PicPurifyException = PicpurifyException
+
 def getNbFace(api_key, image_path):
     client = PicPurifyImage(api_key, ['face_detection'])
     response = client.analyse(image_path)
