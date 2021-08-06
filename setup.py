@@ -4,7 +4,7 @@ import os
 here = os.path.abspath(os.path.dirname(__file__))
 
 requirements = [
-    'requests>=2.13.0', 'Pillow>=7.0.0'
+    'requests>=2.13.0', 'Pillow>=6.2.2'
 ]
 
 about = {}
